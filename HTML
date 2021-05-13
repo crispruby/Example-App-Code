@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {
+    background-color: maroon;
+}
+h1{
+	position: absolute;
+    font-size: 80px;
+ 	font-family: impact, arial;
+    color: blue;
+}
+h1.align{
+	left: 90px;
+}
+h1.end{
+	left: 500px;
+    top: 275px;
+}
+h2{
+	position: absolute;
+    color: white;
+    border-color: black;
+    text-shadow: -2px -2px black, -2px 2px black, 2px -2px black, 1px 1px black, -2px -2px black, -2px 2px black, 2px -2px black, 5px 5px black, -2px -2px black, -2px 2px black, 2px -2px black, 3px 3px black;
+ 	font-family: arial;
+    letter-spacing: 3px;
+}
+h2.top{
+	left: 135px;
+	top: 45px;
+    font-size: 50px;
+    letter-spacing: 4px;
+}
+h2.middle{
+	left: 240px;
+	top: 80px;
+    font-size: 80px;
+}
+h3{
+	position: absolute;
+	left: 230px;
+    top: 205px;
+    font-size: 50px;
+    color: white;
+    text-shadow: -2px -2px black, -2px 2px black, 2px -2px black, 1px 1px black, -2px -2px black, -2px 2px black, 2px -2px black, 5px 5px black, -2px -2px black, -2px 2px black, 2px -2px black, 3px 3px black;
+ 	font-family: arial;
+    letter-spacing: 4px;
+}
+h4{
+	position: absolute;
+    font-size: 65px;
+    color: yellow;
+    font-family:fantasy;
+}
+#demo{
+	left: 30px;
+    top: 80px;
+}
+#demo1{
+	left: 20px;
+    top: 250px;
+}
+hr.cover{
+	position: absolute;
+	height: 20px;
+  	border-radius: 5px;
+    opacity: 0.7;
+	left: 235px;
+}
+h4.glow{
+	-webkit-animation: glow 1s ease-in-out infinite alternate;
+    -moz-animation: glow 1s ease-in-out infinite alternate;
+    animation: glow 1s ease-in-out infinite alternate;
+}
+@-webkit-keyframes glow {
+  from {
+    text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #e60073, 0 0 40px #e60073, 0 0 50px #e60073, 0 0 60px #e60073, 0 0 70px #e60073;
+  }
+  to {
+    text-shadow: 0 0 20px #fff, 0 0 30px #ff4da6, 0 0 40px #ff4da6, 0 0 50px #ff4da6, 0 0 60px #ff4da6, 0 0 70px #ff4da6, 0 0 80px #ff4da6;
+  }
+}
+hr.brick{
+	position: absolute;
+	border-right:1000px solid gray;
+    border-top:4px solid gray;
+  	border-radius: 2px;
+    opacity: 0.5;
+    left:-5px;
+}
+hr.vec{
+	position: absolute;
+	border-right:4px solid gray;
+  	border-radius: 2px;
+    opacity: 0.5;
+    border-top: 70px solid gray;
+}
+hr.topp{
+	top:-10px;
+  	border-top:30px solid gray;
+}
+hr.nd{top:22px;}
+hr.th{top:92px;}
+hr.rd{top:160px;}
+hr.f{top:230px;}
+hr.sx{top:300px;}
+hr.svn{top:370px;}
+hr.brick1{top:20px;}
+hr.brick2{top:90px;}
+hr.brick3{top:160px;}
+hr.brick4{top:230px;}
+hr.brick5{top:300px;}
+hr.brick6{top:370px;}
+hr.b1brick{left:40px;}
+hr.b2brick{left:170px;}
+hr.b3brick{left:300px;}
+hr.b4brick{left:430px;}
+hr.b5brick{left:560px;}
+hr.bb1brick{left:105px;}
+hr.bb2brick{left:235px;}
+hr.bb3brick{left:365px;}
+hr.bb4brick{left:495px;}
+hr.bb5brick{left:625px;}
+hr.life{
+	top: 170px;
+	border-right:200px solid yellow;
+}
+hr.hope{
+	top: 358px;
+	border-right:250px solid yellow;
+}
+#btn{
+	position: absolute;
+	left : 20px;
+    top : 2px;
+}
+#btn1{
+	position: absolute;
+	left : 150px;
+    top : 2px;
+}
+</style>
+<body>
+<hr class="brick1 brick">
+<hr class="brick2 brick">
+<hr class="brick3 brick">
+<hr class="brick4 brick">
+<hr class="brick5 brick">
+<hr class="brick6 brick">
+<hr class="b3brick vec topp">
+<hr class="b4brick vec topp">
+<hr class="b5brick vec topp">
+<hr class="bb1brick vec nd">
+<hr class="bb2brick vec nd">
+<hr class="bb3brick vec nd">
+<hr class="bb4brick vec nd">
+<hr class="bb5brick vec nd">
+<hr class="bb1brick vec rd">
+<hr class="bb2brick vec rd">
+<hr class="bb3brick vec rd">
+<hr class="bb4brick vec rd">
+<hr class="bb5brick vec rd">
+<hr class="b1brick vec th">
+<hr class="b2brick vec th">
+<hr class="b3brick vec th">
+<hr class="b4brick vec th">
+<hr class="b5brick vec th">
+<hr class="b1brick vec th">
+<hr class="b2brick vec th">
+<hr class="b3brick vec th">
+<hr class="b4brick vec th">
+<hr class="b5brick vec th">
+<hr class="b1brick vec th">
+<hr class="b2brick vec th">
+<hr class="b3brick vec th">
+<hr class="b4brick vec th">
+<hr class="b5brick vec th">
+<hr class="b1brick vec f">
+<hr class="b2brick vec f">
+<hr class="b3brick vec f">
+<hr class="b4brick vec f">
+<hr class="b5brick vec f">
+<hr class="bb1brick vec sx">
+<hr class="bb2brick vec sx">
+<hr class="bb3brick vec sx">
+<hr class="bb4brick vec sx">
+<hr class="bb5brick vec sx">
+<hr class="b1brick vec svn">
+<hr class="b2brick vec svn">
+<hr class="b3brick vec svn">
+<hr class="b4brick vec svn">
+<hr class="b5brick vec svn">
+<h1 class="align">{</h1>
+<h2 class="top">WHILE THERE'S</h3>
+<h2 class="middle">LIFE<br><br>HOPE</h3>
+<h3>THERE'S</h3>
+<h4 id="demo" class="glow"></h4>
+<h4 id="demo1" class="glow"></h4>
+<h1 class="end">}</h1>
+<hr class="life cover">
+<hr class="hope cover">
+<button id="btn" onclick="code(), typeWriter()">Finish The Joke</button>
+<button id="btn1" onclick="reset()">Reset</button>
+<script>
+document.getElementById("btn1").disabled = true; 
+var i = 0;
+var j = 0;
+var txt = 'CODE';
+var text = ' A BUG';
+function typeWriter() {
+  if (j < text.length) {
+    document.getElementById("demo1").innerHTML += text.charAt(j);
+    document.getElementById("btn").disabled = true; 
+    document.getElementById("btn1").disabled = false; 
+    j++;
+    setTimeout(typeWriter, 150);
+  }
+}
+function code() {
+  if (i < txt.length) {
+    document.getElementById("demo").innerHTML += txt.charAt(i);
+    i++;
+    setTimeout(code, 150);
+  }
+}
+function reset() {
+	i = 0;
+    j = 0;
+	document.getElementById("demo").innerHTML = "";
+	document.getElementById("demo1").innerHTML = "";
+    document.getElementById("btn1").disabled = true; 
+    document.getElementById("btn").disabled = false; 
+}
+</script>
+</body>
+</html>
