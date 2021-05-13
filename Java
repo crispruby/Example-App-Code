@@ -1,0 +1,373 @@
+package com.example.broadcastTest.buddy7;
+import android.Manifest;
+import android.app.Activity;
+import android.app.ActivityManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.LocationManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.Selection;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.Objects;
+public class MainActivity extends AppCompatActivity{
+    public static final String CUSTOM_BROADCAST_ACTION = "com.example.broadcastTest.buddy7.CUSTOM_BROADCAST";
+    private static final int MY_PERMISSIONS_REQUEST_RECEIVE_SMS = 0;
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 1;
+    private static final int MY_PERMISSIONS_REQUEST_GPS_LOCATION = 2;
+    String[] PERMISSIONS = {android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.ACCESS_FINE_LOCATION};
+    SharedPreferences prefs;
+    BroadcastReceiver broadcastReceiver;
+    boolean permission;
+    boolean unValidYet;
+    Button btnOnOff;
+    Button btnTimeChoice;
+    EditText bud1, phone1;
+    RadioButton budDot;
+    String phone;
+    Boolean anyTextChange = false;
+    String min = "5";
+    int minNumber = 5;
+    EditText timeSetup;
+    TextView timeText;
+    gps_service gpsService;
+    Intent gpsIntent;
+    int cycleProgress;
+    String counting;
+    LocationManager locationManager;
+    String coordinates;
+    Boolean supposedToRun = false;
+    //Button ordered_br;, normal_br, local_br;
+    //FirstCustomBroadcastReceiver receiver1 = new FirstCustomBroadcastReceiver();
+    SecondCustomBroadcastReceiver receiver2 = new SecondCustomBroadcastReceiver();
+    //LocalBroadcast receiver3 = new LocalBroadcast();
+    @Override protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS)!= PackageManager.PERMISSION_GRANTED){
+            if(!ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.RECEIVE_SMS )){
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECEIVE_SMS},MY_PERMISSIONS_REQUEST_RECEIVE_SMS);
+            }
+        }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, MY_PERMISSIONS_REQUEST_SEND_SMS);
+            permission = false;
+        } else {
+            permission = true;
+        }
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                    && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, PERMISSIONS, MY_PERMISSIONS_REQUEST_GPS_LOCATION);
+            }
+        }
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            onGPS();
+        }
+        phone1 = findViewById(R.id.editTextPhone1);
+        bud1 = findViewById(R.id.editTextName1);
+        btnOnOff = findViewById(R.id.onOff);
+        budDot = findViewById(R.id.circle1);
+        btnTimeChoice = findViewById(R.id.timeCount);
+        phone = String.valueOf(phone1.getText());
+        timeSetup = findViewById(R.id.setupTime);
+        timeText = findViewById(R.id.timeText);
+        validForBroadcast();
+        gpsService = new gps_service();
+        gpsIntent = new Intent(this,gpsService.getClass());
+        gpsIntent.putExtra("notificationRunOne",true);
+        if(supposedToRun && !isMyServiceRunning(gpsService.getClass())){
+            startService(gpsIntent);
+        }
+        timeSetup.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String zero = timeSetup.getText().toString();
+                if(zero.length() > 1 && zero.charAt(0) == '0'){
+                    timeSetup.setText(zero.substring(1));
+                    Selection.moveRight(timeSetup.getText(), timeSetup.getLayout());
+                }
+            }
+            @Override public void afterTextChanged(Editable s) {
+                anyTextChange = true;
+            }
+        });
+        btnTimeChoice.setOnClickListener(v -> {
+            if(anyTextChange) {
+                String timeMin = timeSetup.getText().toString();
+                if (timeMin.length() == 0 || Integer.parseInt(timeMin) == 0) {
+                    btnOnOff.setEnabled(false);
+                    btnTimeChoice.setText("0");
+                    minNumber = 0;
+                    min = "0";
+                } else {
+                    min = timeSetup.getText().toString();
+                    btnTimeChoice.setText(min);
+                    btnOnOff.setEnabled(true);
+                    minNumber = Integer.parseInt(min);
+                }
+                anyTextChange = false;
+            }
+        });
+        phone1.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override public void afterTextChanged(Editable s) {
+                phone = String.valueOf(phone1.getText());
+                validForBroadcast();
+            }
+        });
+    }
+    private boolean isMyServiceRunning(Class<?> serviceClass){
+        String btnSwitch;
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                Log.i ("Service status", "Running");
+                btnSwitch = "Off";
+                btnOnOff.setText(btnSwitch);
+                return true;
+            }
+        }
+        Log.i ("Service status", "Not running");
+        btnSwitch = "On";
+        btnOnOff.setText(btnSwitch);
+        return false;
+    }
+    public void sideEffects(View v){
+        bud1.setCursorVisible(false); //Hide Cursors & Keyboards
+        phone1.setCursorVisible(false);
+        timeSetup.setCursorVisible(false);
+        InputMethodManager inputMethodManager = (InputMethodManager) this.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(getWindow().getDecorView().getRootView().getWindowToken(), 0);
+        if(v.getId() == budDot.getId()){
+            Intent intent = new Intent();
+            intent.setAction(CUSTOM_BROADCAST_ACTION);
+            if (budDot.isChecked()) {
+                intent.putExtra("phoneNum", phone);
+            }else{
+                intent.putExtra("phoneNum", "000");
+            }
+            sendBroadcast(intent);
+        }
+    }
+    public void timedGPS(View v){ //On Off Button Function
+        bud1.setCursorVisible(false); //Hide Cursors & Keyboards
+        phone1.setCursorVisible(false);
+        timeSetup.setCursorVisible(false);
+        InputMethodManager inputMethodManager = (InputMethodManager) this.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(getWindow().getDecorView().getRootView().getWindowToken(), 0);
+        if(btnOnOff.getText().toString().equals("On")){
+            btnTimeChoice.setEnabled(false);
+            btnOnOff.setText(R.string.off);
+            cycleProgress = Integer.parseInt((String) btnTimeChoice.getText())*60;
+            timeDigits();
+            timeText.setText(counting);
+            if(broadcastReceiver == null){
+                broadcastReceiver = new BroadcastReceiver() {
+                    @Override public void onReceive(Context context, Intent intent) {
+                        cycleProgress = (Integer) Objects.requireNonNull(Objects.requireNonNull(intent.getExtras()).get("countDown"));
+                        if (cycleProgress == 0){
+                            coordinates = (String) intent.getExtras().get("coordinates");
+                            Log.e("", coordinates);
+                        }
+                        timeDigits();
+                    }
+                };
+                registerReceiver(broadcastReceiver, new IntentFilter("location_update"));
+            }
+            gpsIntent = new Intent(getApplicationContext(), gps_service.class);
+            gpsIntent.putExtra("cycle", minNumber);
+            gpsIntent.putExtra("format", 1);
+            gpsIntent.putExtra("phone", phone);
+            if(phone != null) {
+                Log.e("Main:", phone);
+            }
+            gpsIntent.putExtra("stop",false);
+            gpsIntent.putExtra("notificationRunOne",true);
+            gpsIntent.putExtra("startTime", minNumber);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(gpsIntent);
+            } else {
+                startService(gpsIntent);
+            }
+            supposedToRun = true;
+        }else if(btnOnOff.getText().toString().equals("Off")){
+            btnOnOff.setText(R.string.on);
+            timeText.setText(R.string.timeText);
+            if(gpsIntent != null) {
+                gpsIntent.putExtra("stop",true);
+                startService(gpsIntent);
+                stopService(gpsIntent);
+            }
+            if (broadcastReceiver != null){
+                unregisterReceiver(broadcastReceiver);
+                broadcastReceiver = null;
+            }
+            supposedToRun = false;
+            btnTimeChoice.setEnabled(true);
+        }
+    } //On Off Button Function
+    public void timeDigits(){
+        int temp;
+        counting = "Time before next Location Update: ";
+        if(cycleProgress >= 36000){ //2 Digit Hour
+            temp = cycleProgress/3600;
+            cycleProgress -= temp*3600;
+            counting +=  (int) Math.floor(temp) + ":";
+        }else if (cycleProgress >= 3600){ //1 Digit Hour
+            temp = cycleProgress/3600;
+            cycleProgress -= temp*3600;
+            counting += "0" +  (int) Math.floor(temp) + ":";
+        }else{
+            counting += "00:"; //No Hour
+        }
+        if(cycleProgress >= 600){ //2 Digit Minute
+            temp = cycleProgress/60;
+            cycleProgress -= temp*60;
+            counting += (int) Math.floor(temp) + ":";
+        }else if(cycleProgress >= 60){ //1 Digit Minute
+            temp = cycleProgress/60;
+            cycleProgress -= temp*60;
+            counting += "0" +  (int) Math.floor(temp) + ":";
+        }else {
+            counting += "00:"; //No Minute
+        }
+        if(cycleProgress > 9){ //2 Digit Second
+            counting += cycleProgress;
+        }else if(cycleProgress > 0){ //1 Digit Second
+            counting += "0" + cycleProgress;
+        }else{
+            counting += "00"; //No Second
+        }
+        timeText.setText(counting);
+        //Log.d("", "onReceive: ");
+    }
+    public void displayCursor(@NonNull View v){
+        bud1.setCursorVisible(false); //Hide Cursors & Keyboards
+        phone1.setCursorVisible(false);
+        timeSetup.setCursorVisible(false);
+        if(v.getId() == bud1.getId()){
+            bud1.setCursorVisible(true);
+        } else if(v.getId() == phone1.getId()){
+            phone1.setCursorVisible(true);
+        }else if(v.getId() == timeSetup.getId()){
+            timeSetup.setCursorVisible(true);
+        }
+    }
+    private void validForBroadcast() {
+        if(!min.equals("0") && !min.equals("") && android.util.Patterns.PHONE.matcher(phone).matches() && permission){//Valid Mobile?
+            unValidYet = false;
+            btnOnOff.setEnabled(true);
+            budDot.setEnabled(true);
+            Intent intent = new Intent();
+            intent.setAction(CUSTOM_BROADCAST_ACTION);
+            intent.putExtra("phoneNum", phone);
+            sendBroadcast(intent);
+            Log.e("Tag2","Can send SMS");
+        }else{
+            if(!unValidYet){
+                unValidYet = true;
+                Intent intent = new Intent();
+                intent.setAction(CUSTOM_BROADCAST_ACTION);
+                intent.putExtra("phoneNum", "000");
+                sendBroadcast(intent);
+                btnOnOff.setEnabled(false);
+                budDot.setChecked(false);
+                budDot.setEnabled(false);
+            }
+            Log.e("Tag2","cannot send SMS");
+        }
+    }
+    @Override public void onRequestPermissionsResult(int request, @NonNull String[] permissions, @NonNull int[] grantResults){
+        if (request == MY_PERMISSIONS_REQUEST_RECEIVE_SMS) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Thanks for Permission", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "Can't do it, sorry.", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+    @Override protected void onStart() {
+        super.onStart();
+        prefs = getSharedPreferences("prefs",MODE_PRIVATE);
+        btnOnOff.setText(prefs.getString("switch","on"));
+        bud1.setText(prefs.getString("name1",""));
+        phone1.setText(prefs.getString("phone1",""));
+        phone = prefs.getString("phone1",String.valueOf(phone1.getText()));
+        min = prefs.getString("minutes","5");
+        btnTimeChoice.setText(min);
+        timeSetup.setText(min);
+        timeText.setText( prefs.getString("timer", "No Update Timer currently running."));
+        minNumber = prefs.getInt("minNum", 5);
+        unValidYet = prefs.getBoolean("requestAllowance", false);
+        supposedToRun = prefs.getBoolean("runningStill", false);
+        if (btnTimeChoice.getText().toString().equals("0")) {
+            btnOnOff.setEnabled(false);
+        }else{
+            btnTimeChoice.setEnabled(true);
+        }
+        //MainActivity.this.registerReceiver(receiver1,new IntentFilter(CUSTOM_BROADCAST_ACTION));
+        MainActivity.this.registerReceiver(receiver2,new IntentFilter(CUSTOM_BROADCAST_ACTION));
+        //LocalBroadcastManager.getInstance(this).registerReceiver(receiver3, new IntentFilter(CUSTOM_BROADCAST_ACTION));
+    }
+    @Override protected void onStop() {
+        super.onStop();
+        prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("switch", btnOnOff.getText().toString());
+        editor.putString("name1", bud1.getText().toString());
+        editor.putString("phone1", phone1.getText().toString());
+        editor.putInt("minNum", minNumber);
+        editor.putString("minutes", btnTimeChoice.getText().toString());
+        editor.putString("timer", timeText.getText().toString());
+        editor.putBoolean("requestAllowance", unValidYet);
+        editor.putBoolean("runningStill", supposedToRun);
+        editor.apply();
+    }
+    @Override protected void onDestroy() {
+        //Intent broadcastIntent = new Intent();
+        //broadcastIntent.setAction("restartService");
+        //broadcastIntent.setClass(this, Restart.class);
+        //this.sendBroadcast(broadcastIntent);
+
+        super.onDestroy();
+        //MainActivity.this.unregisterReceiver(receiver1);
+        if(broadcastReceiver != null){
+            MainActivity.this.unregisterReceiver(broadcastReceiver);
+        }
+        if(receiver2 != null) {
+            MainActivity.this.unregisterReceiver(receiver2);
+        }
+        //LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver3);
+    }
+    private void onGPS() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Enable GPS").setCancelable(false).setPositiveButton("Yes", (
+                dialog, which) -> startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))).
+                setNegativeButton("No", (dialog, which) -> dialog.cancel());
+        final AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+}
