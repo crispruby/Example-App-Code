@@ -1,0 +1,29 @@
+document.getElementById("btn1").disabled = true; 
+var i = 0;
+var j = 0;
+var txt = 'CODE';
+var text = ' A BUG';
+function typeWriter() {
+  if (j < text.length) {
+    document.getElementById("demo1").innerHTML += text.charAt(j);
+    document.getElementById("btn").disabled = true; 
+    document.getElementById("btn1").disabled = false; 
+    j++;
+    setTimeout(typeWriter, 150);
+  }
+}
+function code() {
+  if (i < txt.length) {
+    document.getElementById("demo").innerHTML += txt.charAt(i);
+    i++;
+    setTimeout(code, 150);
+  }
+}
+function reset() {
+	i = 0;
+    j = 0;
+	document.getElementById("demo").innerHTML = "";
+	document.getElementById("demo1").innerHTML = "";
+    document.getElementById("btn1").disabled = true; 
+    document.getElementById("btn").disabled = false; 
+}
