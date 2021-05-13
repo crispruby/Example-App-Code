@@ -1,0 +1,42 @@
+import psycopg2
+import random
+import string
+import time
+mydb = psycopg2.connect(
+	host = "postgre416.postgres.database.azure.com",
+	user = "postgre416root@postgre416",
+	password = "416Admin",
+	database = "postgres")
+mycursor = mydb.cursor()
+def generateString():
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for i in range(50))
+entries1 = []
+start = time.time()
+for x in range(250):
+    randString = generateString()
+    entries1.append(randString)
+    mycursor.execute("INSERT INTO testTable (field1, field2) VALUES (%s, %s)",(randString, "A"))
+    mydb.commit()
+for x in range(250):
+    randEntry = random.choice(entries1)
+    mycursor.execute("UPDATE testTable SET field2 = %s WHERE field1 = %s",("B", randEntry))
+    mydb.commit()
+randEntry = ""
+yetUsed = False
+for x in range(250):
+    for used in entries1:
+        randEntry = random.choice(entries1)
+        if randEntry == used:
+            yetUsed = True
+    if yetUsed == False:
+        mycursor.execute("SELECT field1, field2 FROM testTable WHERE field1 = %s",(randEntry,))
+        myresults = mycursor.fetchall()
+    yetUsed = False
+    mydb.commit()
+for x in range(250):
+        mycursor.execute("DELETE FROM testTable WHERE field1 = %s", (entries1[x],))
+        mydb.commit()
+end = time.time()
+totalTime = end - start
+print(totalTime)
